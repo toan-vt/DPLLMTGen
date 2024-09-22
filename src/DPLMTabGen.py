@@ -256,7 +256,7 @@ class DPLMTabGen:
                 max_abs_values=None,
                 save_every_epoch=False,
                 save_every_steps=-1,
-                save_model_dir="./models",
+                save_model_dir="./dp-models",
                 save_log=True,
                 log_file="./logs/log.txt",
                 verbose=False,
