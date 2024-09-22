@@ -15,7 +15,7 @@ parser.add_argument('--num_epochs', type=int, default=5, dest="num_epochs")
 parser.add_argument('--lr', type=float, default=1e-4, dest="lr")
 parser.add_argument('--batch-size', type=int, default=0, dest="batch_size")
 parser.add_argument('--accum-steps', type=int, default=1, dest="accum_steps")
-
+parser.add_argument('--max-length', type=int, default=0, dest="max_length")
 args = parser.parse_args()
 
 DATASET = args.dataset
@@ -24,7 +24,10 @@ TRAIN_SIZE = 0
 EVAL_SIZE = 512
 if DATASET == "food":
     EVAL_SIZE = 64
-MAX_LENGTH = CONFIG[DATASET]["max_length"]
+if args.max_length == 0:
+    MAX_LENGTH = CONFIG[DATASET]["max_length"]
+else:
+    MAX_LENGTH = args.max_length
 ACCUM_STEPS = args.accum_steps
 if args.batch_size == 0:
     BATCH_SIZE = CONFIG[DATASET]["batch_size"]
