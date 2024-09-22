@@ -78,7 +78,7 @@ class DPLMTabGen:
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, 
                                                        cache_dir=f'{cache_dir}/huggingface/{model_name}',
                                                        padding_side="left",
-                                                       token=token, trust_remote_code=True, add_prefix_space=False, from_slow=True)
+                                                       token=token, trust_remote_code=True, add_prefix_space=False)
         if 'Llama' in model_name:
             self.tokenizer.pad_token_id = self.tokenizer.bos_token_id
         elif 'gpt' in model_name:
@@ -118,7 +118,7 @@ class DPLMTabGen:
                     model_name,
                     cache_dir=cache_dir,
                     padding_side=padding_side,
-                    token=token, add_prefix_space=False, from_slow=True
+                    token=token, add_prefix_space=False
                 )
         if 'Llama' in model_name:
             self.tokenizer.pad_token_id = self.tokenizer.bos_token_id
