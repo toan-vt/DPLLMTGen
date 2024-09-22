@@ -43,7 +43,7 @@ df_train, df_test = prepare_dataframe(DATASET, random_seed=RANDOM_SEED)
 df_train = get_subset_dataframe(df_train, TRAIN_SIZE, RANDOM_SEED)
 df_eval = get_subset_dataframe(df_test, EVAL_SIZE, RANDOM_SEED)
 
-token = open('/local/scratch/vtran29/keys/llama.token', 'r').read().strip()
+token = open('llama.token', 'r').read().strip()
 
 constraint_dict = {}
 for col in df_train.columns:

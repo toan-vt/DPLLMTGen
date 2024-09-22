@@ -45,7 +45,7 @@ df_train = get_subset_dataframe(df_train, TRAIN_SIZE, RANDOM_SEED)
 df_eval = get_subset_dataframe(df_test, EVAL_SIZE, RANDOM_SEED)
 df_fake = generate_fake_df(df=df_train, num_samples=TRAIN_SIZE, seed=RANDOM_SEED)
 
-token = open('/local/scratch/vtran29/keys/llama.token', 'r').read().strip()
+token = open('llama.token', 'r').read().strip()
 
 dptabgen = DPLMTabGen(model_name=MODEL_NAME,
                       cache_dir=".cache",

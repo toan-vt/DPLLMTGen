@@ -173,3 +173,4 @@ models/
 tmp/
 vis/
 *.ipynb
+*.token

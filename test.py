@@ -49,7 +49,7 @@ df_fake = generate_fake_df(df=df_train, num_samples=TRAIN_SIZE, seed=RANDOM_SEED
 
 model_name = SHORT_NAME
 cache_dir = ".cache"
-token = open('/local/scratch/vtran29/keys/llama.token', 'r').read().strip()
+token = open('llama.token', 'r').read().strip()
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=token,
                                                 cache_dir=f'{cache_dir}/huggingface/{model_name}',
                                                 padding_side="left",

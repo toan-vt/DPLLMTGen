@@ -85,7 +85,7 @@ for col in df_train.columns:
 df_train = get_subset_dataframe(df_train, TRAIN_SIZE, RANDOM_SEED)
 df_eval = get_subset_dataframe(df_test, EVAL_SIZE, RANDOM_SEED)
 
-token = open('/local/scratch/vtran29/keys/llama.token', 'r').read().strip()
+token = open('llama.token', 'r').read().strip()
 
 print(f"Model Name: {MODEL_NAME}")
 print(f"FT Model Name: {FT_MODEL_PATH}")

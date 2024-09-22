@@ -47,7 +47,7 @@ df_train, df_test = prepare_dataframe(DATASET, random_seed=RANDOM_SEED)
 df_train = get_subset_dataframe(df_train, TRAIN_SIZE, RANDOM_SEED)
 df_eval = get_subset_dataframe(df_test, EVAL_SIZE, RANDOM_SEED)
 
-token = open('/local/scratch/vtran29/keys/llama.token', 'r').read().strip()
+token = open('llama.token', 'r').read().strip()
 
 print(f"TARGET_LAST: {TARGET_LAST}, NUMERICAL_LOSS: {NUMERICAL_LOSS}")
 
