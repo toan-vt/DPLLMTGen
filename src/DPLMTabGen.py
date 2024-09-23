@@ -467,7 +467,10 @@ class DPLMTabGen:
                 torch.cuda.empty_cache()
 
         self.is_dp_model = True
-        self.model._module.save_pretrained(f"{save_model_dir}/p2_final_{epsilon}")
+        if not fastdp:
+            self.model._module.save_pretrained(f"{save_model_dir}/p2_final_{epsilon}")
+        else:
+            self.model.save_pretrained(f"{save_model_dir}/p2_final_{epsilon}")
         if save_log:
             # check if folder exist
             if not os.path.exists(os.path.dirname(log_file)):

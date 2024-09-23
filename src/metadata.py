@@ -11,7 +11,7 @@ CONFIG = {
     },
     "shipping":{
         "data_size": 8800,
-        "max_length": 128,
+        "max_length": 110,
         "batch_size": 512,
     },
     "healthcare":{

@@ -23,6 +23,8 @@ parser.add_argument('--batch_size', type=int, default=0, dest="batch_size")
 parser.add_argument('--accum_steps', type=int, default=1, dest="accum_steps")
 parser.add_argument('--formatted_model_path', type=str, default=None, dest="formatted_model_path")
 parser.add_argument('--fastdp', action='store_true')
+parser.add_argument('--temperature', type=float, default=1.0, dest="temperature")
+parser.add_argument('--max_length', type=int, default=0, dest="max_length")
 args = parser.parse_args()
 
 DATASET = args.dataset
@@ -31,7 +33,10 @@ TRAIN_SIZE = args.training_size
 EVAL_SIZE = 512
 if DATASET == "food":
     EVAL_SIZE = 64
-MAX_LENGTH = CONFIG[DATASET]["max_length"]
+if args.max_length == 0:
+    MAX_LENGTH = CONFIG[DATASET]["max_length"]
+else:
+    MAX_LENGTH = args.max_length
 NUM_DP_EPOCHS = args.num_dp_epochs
 LEARNING_RATE = args.learning_rate
 ALPHA = args.alpha
@@ -40,6 +45,7 @@ GAMMA = args.gamma
 EPSILON = args.epsilon
 MODEL_NAME = args.model_name
 SHORT_NAME = MODEL_NAME.split("/")[-1]
+TEMPERATURE = args.temperature
 # if '7' in MODEL_NAME:
 #     BATCH_SIZE = CONFIG[DATASET]["batch_size"]
 # elif '13' in MODEL_NAME:
@@ -52,7 +58,7 @@ else:
 ACCUM_STEPS = args.accum_steps
 TARGET_LAST = args.target_last
 NUMERICAL_LOSS = args.numerical_loss
-TEMPERATURE = 1.0
+TEMPERATURE = args.temperature
 FT_MODEL_PATH = args.formatted_model_path
 FASTDP = args.fastdp
 
@@ -140,7 +146,7 @@ num_samples = TRAIN_SIZE
 if num_samples == 0:
     num_samples = len(df_train)
 
-syn_df = dptabgen.sample(constraint_dict, batch_size=BATCH_SIZE, num_samples=num_samples, max_length=MAX_LENGTH, target_last=TARGET_LAST, temperature=TEMPERATURE)
+syn_df = dptabgen.sample(constraint_dict, batch_size=BATCH_SIZE, num_samples=num_samples, max_length=MAX_LENGTH*2, target_last=TARGET_LAST, temperature=TEMPERATURE)
 save_file_path = f"./data/{DATASET}/synthetic/{SHORT_NAME}_TL{TARGET_LAST}{GAMMA}_NL{NUMERICAL_LOSS}_{TRAIN_SIZE}_{RANDOM_SEED}_{EPSILON}_{NUM_DP_EPOCHS}_{ALPHA}_{LEARNING_RATE}_TEM{TEMPERATURE}.csv"
 if not os.path.exists(os.path.dirname(save_file_path)):
     os.makedirs(os.path.dirname(save_file_path))
