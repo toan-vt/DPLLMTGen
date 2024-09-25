@@ -66,13 +66,13 @@ dptabgen = DPLMTabGen(model_name=MODEL_NAME,
                       ft_model_path=FT_MODEL_PATH,
     )
 
-print("Final Format passed: ", dptabgen.format_checking(constraint_dict, num_samples=500, max_length=int(MAX_LENGTH*1.2), batch_size=BATCH_SIZE, verbose=True, target_last=TARGET_LAST, wrong_format_verbose=True))
+# print("Final Format passed: ", dptabgen.format_checking(constraint_dict, num_samples=500, max_length=int(MAX_LENGTH), batch_size=BATCH_SIZE, verbose=True, target_last=TARGET_LAST, wrong_format_verbose=True))
 
 num_samples = TRAIN_SIZE
 if num_samples == 0:
     num_samples = len(df_train)
 
-syn_df = dptabgen.sample(constraint_dict, batch_size=BATCH_SIZE, num_samples=num_samples, max_length=MAX_LENGTH, target_last=TARGET_LAST, temperature=TEMPERATURE)
+syn_df = dptabgen.sample_dev(constraint_dict, batch_size=BATCH_SIZE, num_samples=100, max_length=MAX_LENGTH, target_last=TARGET_LAST, temperature=TEMPERATURE)
 save_file_path = OUTPUT_PATH
 if not os.path.exists(os.path.dirname(save_file_path)):
     os.makedirs(os.path.dirname(save_file_path))

@@ -9,9 +9,11 @@ import pandas as pd
 import time
 import numpy as np
 import gc
+import random
 from src.preprocessing import TASK_DESCRIPTION
 
 EVAL_BATCH_SIZE = 16
+MAX_PREFIX_LENGTH = 10
 
 def is_number(s):
     try:
@@ -494,7 +496,78 @@ class DPLMTabGen:
             inputs = {k: v.to(device) for k, v in inputs.items()}
             outputs = self.model.generate(**inputs, max_length=max_length*2, do_sample=True)
             return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
-        
+    
+    # def sample_with_self_consitency(self, constraint_dict, num_samples=1024, max_length=128, batch_size=64, target_last=True, temperature=1.0):
+    #     if not target_last:
+    #         raise ValueError("target_last must be True")
+    #     print("Start sampling")
+    #     # number of consitent samples
+    #     num_consistent_samples = 32
+    #     actual_samples_in_batch = int(batch_size/num_consistent_samples)
+    #     def get_random_start(constraint_dict):
+    #         all_cols = list(constraint_dict.keys())[:-1]
+    #         col = np.random.choice(all_cols)
+    #         return f'{TASK_DESCRIPTION}{col} is'
+    #     column_names = list(constraint_dict.keys())
+    #     pbar = tqdm(total=num_samples)
+    #     count = 0
+    #     df = []
+    #     self.model.eval()
+    #     device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    #     with torch.no_grad():
+    #         while count < num_samples:
+    #             current_df = []
+    #             prompts = [get_random_start(constraint_dict) for _ in range(actual_samples_in_batch)]
+    #             inputs = self.tokenizer(prompts, return_tensors="pt", padding="max_length", max_length=max_length).to(device)
+    #             if self.is_dp_model:
+    #                 outputs = self.model._module.generate(**inputs, max_length=max_length*2, do_sample=True, temperature=temperature)
+    #             else:
+    #                 outputs = self.model.generate(**inputs, max_length=max_length*2, do_sample=True, temperature=temperature)
+    #             outputs = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+    #             outputs = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+    #             outputs = [output.replace(TASK_DESCRIPTION, '') for output in outputs]
+    #             for output in outputs:
+    #                 wrong_format = False
+    #                 col_flags = {}
+    #                 for col in constraint_dict:
+    #                     col_flags[col] = False
+    #                 for substr in output.split(', '):
+    #                     for col in column_names:
+    #                         if f'{col} is ' in substr:
+    #                             val = substr.split(f"{col} is ", 1)[1].strip()
+    #                             col_flags[col] = val
+    #                             if constraint_dict[col]['type'] == 'categorical':
+    #                                 if col_flags[col] not in constraint_dict[col]['unique_values']:
+    #                                     print(f'\tERROR: "{col_flags[col]}" not in "{col}"')
+    #                                     wrong_format = True
+    #                                     break
+    #                             elif not is_number(val):
+    #                                 print(f'\tERROR: "{val}" is not a number')
+    #                                 wrong_format = True
+    #                                 break                                
+    #                 for col in col_flags:
+    #                     if not col_flags[col]:
+    #                         wrong_format = True
+    #                         break
+
+    #                 if not wrong_format:
+    #                     current_df.append(col_flags)
+    #                     count += 1
+    #                     pbar.update(1)
+
+    #             # start self-consistency checking
+    #             if len(current_df) > 0:
+    #                 prompts = []
+    #                 feature_names = column_names[:-1]
+    #                 for sample_features in current_df:
+    #                     for _ in range(num_consistent_samples):
+    #                         prompt = "{TASK_DESCRIPTION} "
+    #                         for feature in feature_names:
+    #                             prompt += f'{feature} is {sample_features[feature]} , '
+    #                         prompts.append(prompt)
+            
+
+
     def sample(self, constraint_dict, num_samples=1024, max_length=128, batch_size=64, target_last=False, temperature=1.0):
         """
             constraint_dict = {
@@ -519,7 +592,7 @@ class DPLMTabGen:
                 col = np.random.choice(list(constraint_dict.keys()))
             else:
                 col = np.random.choice(list(constraint_dict.keys())[:-1])
-            return f'{TASK_DESCRIPTION}{col} is'
+            return f'{TASK_DESCRIPTION}'
 
         column_names = list(constraint_dict.keys())
         pbar = tqdm(total=num_samples)
@@ -531,11 +604,11 @@ class DPLMTabGen:
             while count < num_samples:
                 # print("count: ", count)
                 prompts = [get_random_start(constraint_dict) for _ in range(batch_size)]
-                inputs = self.tokenizer(prompts, return_tensors="pt", padding="max_length", max_length=max_length).to(device)
+                inputs = self.tokenizer(prompts, return_tensors="pt", padding="max_length", max_length=6).to(device)
                 if self.is_dp_model:
-                    outputs = self.model._module.generate(**inputs, max_length=max_length*2, do_sample=True, temperature=temperature)
+                    outputs = self.model._module.generate(**inputs, max_length=max_length+6, do_sample=True, temperature=temperature)
                 else:
-                    outputs = self.model.generate(**inputs, max_length=max_length*2, do_sample=True, temperature=temperature)
+                    outputs = self.model.generate(**inputs, max_length=max_length+6, do_sample=True, temperature=temperature)
                 outputs = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
                 outputs = [output.replace(TASK_DESCRIPTION, '') for output in outputs]
                 for output in outputs:
@@ -574,6 +647,136 @@ class DPLMTabGen:
         print("Finish sampling")
         return pd.DataFrame(df)
     
+    def sample_dev(self, constraint_dict, num_samples=1024, max_length=128, batch_size=64, target_last=False, temperature=1.0):
+        """
+            constraint_dict = {
+                'column_name': {'type': 'categorical', 'unique_values': ['value1', 'value2', ...]},
+                'column_name': {'type': 'numerical', 'min': 0, 'max': 100},
+            }
+        """
+        print("Start sampling")
+        # def get_random_start(constraint_dict):
+        #     cat_cols = [k for k, v in constraint_dict.items() if v['type'] == 'categorical']
+        #     col = np.random.choice(cat_cols)
+        #     val = np.random.choice(list(constraint_dict[col]['unique_values']))
+            
+        #     all_cols = list(constraint_dict.keys())
+        #     all_cols.remove(col)
+        #     second_col = np.random.choice(all_cols)
+            
+        #     return f'{col} is {val} , {second_col} is'
+
+        def get_random_start(constraint_dict):
+            if not target_last:
+                col = np.random.choice(list(constraint_dict.keys()))
+            else:
+                col = np.random.choice(list(constraint_dict.keys())[:-1])
+            return f'{TASK_DESCRIPTION}'
+        column_names = list(constraint_dict.keys())
+        pbar = tqdm(total=num_samples)
+        count = 0
+        df = []
+        self.model.eval()
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        with torch.no_grad():
+            while count < num_samples:
+                # print("count: ", count)
+                prompts = [get_random_start(constraint_dict) for _ in range(batch_size)]
+                inputs = self.tokenizer(prompts, return_tensors="pt", padding="max_length", max_length=MAX_PREFIX_LENGTH).to(device)
+                if self.is_dp_model:
+                    outputs = self.model._module.generate(**inputs, max_length=max_length+MAX_PREFIX_LENGTH, do_sample=True, temperature=temperature, output_scores=True, output_logits=True, return_dict_in_generate=True)
+                else:
+                    outputs = self.model.generate(**inputs, max_length=max_length+MAX_PREFIX_LENGTH, do_sample=True, temperature=temperature, output_scores=True, output_logits=True, return_dict_in_generate=True)
+
+                # print(outputs.sequences[0])
+                # print(self.tokenizer.encode(", Reached.on.Time is"))
+                # print(self.tokenizer.decode([3363]))
+                # print(outputs.keys())
+                # for key in outputs.keys():
+                #     print(key, type(outputs[key]))
+                # print("max_length: ", max_length)
+                # print("outputs.sequences length: ", len(outputs.sequences))
+                # print("outputs.scores length: ", len(outputs.scores))
+                # print("outputs.logits length: ", len(outputs.logits))
+                # print(type(outputs.scores))
+
+                sequences = self.tokenizer.batch_decode(outputs.sequences, skip_special_tokens=True)
+                sequences = [seq.replace(TASK_DESCRIPTION, '') for seq in sequences]
+                for i, output in enumerate(sequences):
+                    wrong_format = False
+                    col_flags = {}
+                    for col in constraint_dict:
+                        col_flags[col] = False
+                    for substr in output.split(', '):
+                        for col in column_names:
+                            if f'{col} is ' in substr:
+                                val = substr.split(f"{col} is ", 1)[1].strip()
+                                col_flags[col] = val
+                                if constraint_dict[col]['type'] == 'categorical':
+                                    if col_flags[col] not in constraint_dict[col]['unique_values']:
+                                        print(f'\tERROR: "{col_flags[col]}" not in "{col}"')
+                                        wrong_format = True
+                                        break
+                                elif not is_number(val):
+                                    print(f'\tERROR: "{val}" is not a number')
+                                    wrong_format = True
+                                    break
+                                # elif (float(val) < constraint_dict[col]['min']) or(float(val) > constraint_dict[col]['max']):
+                                #     wrong_format = True
+                                #     break
+                                
+                    for col in col_flags:
+                        if not col_flags[col]:
+                            wrong_format = True
+                            break
+
+                    if not wrong_format:                        
+                        # get the index of the token that is the last one but not the special token
+                        last_token_index_in_seq = 0
+                        # print(f"seq: {output}")
+                        # print("token ids:", outputs.sequences[i])
+                        for j in range(len(outputs.sequences[i])-1, -1, -1):
+                            # print(f"token {j}: {outputs.sequences[i][j]}")
+                            if outputs.sequences[i][j] != self.tokenizer.pad_token_id:
+                                # print(f"selected token {j}: {outputs.sequences[i][j]}")
+                                last_token_index_in_seq = j
+                                break
+                        last_token_index_in_score = last_token_index_in_seq - MAX_PREFIX_LENGTH
+                        score = outputs.scores[last_token_index_in_score][i]
+                        # get probability by softmax on score
+                        prob = torch.nn.functional.softmax(score, dim=0)
+                        # print(f"score: {score}")
+                        # print(f"prob: {prob}")
+
+                        # get top k tokens
+                        k = 2
+                        top_k = torch.topk(prob, k)
+                        print(f"top {k} tokens: {top_k}")
+                        for j in range(k):
+                            print(f"token: {top_k.indices[j]}, prob: {top_k.values[j]}, token: {self.tokenizer.decode([top_k.indices[j]])}")
+                        print("\n")
+
+                        # get the token with the highest probability
+                        top_token_index = torch.argmax(prob)
+                        # check if it was sellected
+                        if top_token_index != outputs.sequences[i][last_token_index_in_seq]:
+                            # print(f"top token: {top_token_index}, prob: {prob[top_token_index]}, token: {self.tokenizer.decode([top_token_index])}")
+                            # print(f"selected token: {outputs.sequences[i][last_token_index_in_seq]}, prob: {prob[outputs.sequences[i][last_token_index_in_seq]]}, token: {self.tokenizer.decode([outputs.sequences[i][last_token_index_in_seq]])}")
+                            # print(f"seq: {output}")
+                            # print(f"score: {score}")
+                            # print(f"prob: {prob}")
+                            # print("\n")
+                            continue
+                        if (prob[top_token_index] < 0.6): # only get high prob samples
+                            continue
+
+                        df.append(col_flags)
+                        count += 1
+                        pbar.update(1)
+
+
+        print("Finish sampling")
+        return pd.DataFrame(df)
 
     def format_checking(self, constraint_dict, num_samples=256, max_length=128, batch_size=64, with_prob=False, verbose=False, target_last=False, wrong_format_verbose=False):
         """
@@ -600,7 +803,7 @@ class DPLMTabGen:
                 all_cols = list(constraint_dict.keys())[:-1]
             col = np.random.choice(all_cols)
             
-            return f'{TASK_DESCRIPTION}{col} is'
+            return f'{TASK_DESCRIPTION}'
 
 
         column_names = list(constraint_dict.keys())
@@ -614,11 +817,11 @@ class DPLMTabGen:
         with torch.no_grad():
             while count < num_samples:
                 prompts = [get_random_start(constraint_dict) for _ in range(batch_size)]
-                inputs = self.tokenizer(prompts, return_tensors="pt", padding="max_length", max_length=max_length).to(device)
+                inputs = self.tokenizer(prompts, return_tensors="pt", padding="max_length", max_length=MAX_PREFIX_LENGTH).to(device)
                 if self.is_dp_model:
-                    outputs = self.model._module.generate(**inputs, max_length=max_length*2, do_sample=True)
+                    outputs = self.model._module.generate(**inputs, max_length=max_length + MAX_PREFIX_LENGTH, do_sample=True)
                 else:
-                    outputs = self.model.generate(**inputs, max_length=max_length*2, do_sample=True)
+                    outputs = self.model.generate(**inputs, max_length=max_length + MAX_PREFIX_LENGTH, do_sample=True)
                 outputs = self.tokenizer.batch_decode(outputs, skip_special_tokens=True, clean_up_tokenization_spaces=True)
                 outputs = [output.replace(TASK_DESCRIPTION, '') for output in outputs]
                 for output in outputs:
