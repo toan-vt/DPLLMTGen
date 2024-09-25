@@ -260,7 +260,8 @@ class DPLMTabGen:
                 save_log=True,
                 log_file="./logs/log.txt",
                 verbose=False,
-                fastdp=False
+                fastdp=False,
+                nondp=False
                 ):
         train_dataloader = DataLoader(
             train_dataset, shuffle=True, collate_fn=default_data_collator, batch_size=batch_size, pin_memory=True
@@ -276,7 +277,9 @@ class DPLMTabGen:
             #     num_warmup_steps=0,
             #     num_training_steps=(len(train_dataloader) * num_epochs),
             # )
-        if not fastdp:
+        if nondp:
+            pass
+        elif not fastdp:
             from opacus.privacy_engine import PrivacyEngine
             from opacus.accountants.utils import get_noise_multiplier
 
@@ -393,7 +396,9 @@ class DPLMTabGen:
                     self.optimizer.zero_grad()
                 # self.lr_scheduler.step()
                 if save_every_steps != -1 and current_step % save_every_steps == 0:
-                    if not fastdp:
+                    if nondp:
+                        epsilon = 99999
+                    elif not fastdp:
                         epsilon = privacy_engine.get_epsilon(delta=delta)
                     else:
                         epsilon = privacy_engine.get_privacy_spent()
@@ -416,13 +421,15 @@ class DPLMTabGen:
                     if not os.path.exists(save_model_dir):
                         os.makedirs(save_model_dir)
                     
-                    if not fastdp:
+                    if (not fastdp) and (not nondp):
                         self.model._module.save_pretrained(f"{save_model_dir}/p2_step_{current_step}")
                     else:
                         self.model.save_pretrained(f"{save_model_dir}/p2_step_{current_step}")
             train_epoch_loss = total_loss / len(train_dataloader)
             train_ppl = torch.exp(train_epoch_loss)
-            if not fastdp:
+            if nondp:
+                epsilon = 99999
+            elif not fastdp:
                 epsilon = privacy_engine.get_epsilon(delta=delta)
             else:
                 epsilon = privacy_engine.get_privacy_spent()
@@ -458,7 +465,7 @@ class DPLMTabGen:
             if save_every_epoch:
                 if not os.path.exists(save_model_dir):
                     os.makedirs(save_model_dir)
-                if not fastdp:
+                if (not fastdp) and (not nondp):
                     self.model._module.save_pretrained(f"{save_model_dir}/p2_epoch_{epoch}_{epsilon}")
                 else:
                     self.model.save_pretrained(f"{save_model_dir}/p2_step_{current_step}")
@@ -467,9 +474,10 @@ class DPLMTabGen:
                 torch.cuda.empty_cache()
 
         self.is_dp_model = True
-        if not fastdp:
+        if (not fastdp) and (not nondp):
             self.model._module.save_pretrained(f"{save_model_dir}/p2_final_{epsilon}")
         else:
+            self.is_dp_model = False
             self.model.save_pretrained(f"{save_model_dir}/p2_final_{epsilon}")
         if save_log:
             # check if folder exist

@@ -66,7 +66,7 @@ dptabgen = DPLMTabGen(model_name=MODEL_NAME,
                       ft_model_path=FT_MODEL_PATH,
     )
 
-print("Final Format passed: ", dptabgen.format_checking(constraint_dict, num_samples=500, max_length=MAX_LENGTH*2, batch_size=BATCH_SIZE, verbose=True, target_last=TARGET_LAST, wrong_format_verbose=True))
+print("Final Format passed: ", dptabgen.format_checking(constraint_dict, num_samples=500, max_length=int(MAX_LENGTH*1.2), batch_size=BATCH_SIZE, verbose=True, target_last=TARGET_LAST, wrong_format_verbose=True))
 
 num_samples = TRAIN_SIZE
 if num_samples == 0:

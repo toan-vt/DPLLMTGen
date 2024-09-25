@@ -174,3 +174,4 @@ tmp/
 vis/
 *.ipynb
 *.token
+nondp-models/
