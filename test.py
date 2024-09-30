@@ -95,7 +95,10 @@ print("\n")
 
 dp_dataset = get_dp_dataset_from_df(df=df_train, tokenizer=tokenizer, max_length=MAX_LENGTH, target_last=TARGET_LAST, shuffle=False)
 print(f"dp formatted ids: {dp_dataset[0]['input_ids']}")
+print(f"dp formatted ids: {dp_dataset[0]['input_ids']}")
 print(f"dp formatted prompt: {tokenizer.decode(dp_dataset[0]['input_ids'], skip_special_tokens=False, clean_up_tokenization_spaces=True)}")
+
+
 
 # for key in fake_dataset[0].keys():
 #     print(f"{key}: {len(fake_dataset[0][key])}")
@@ -104,9 +107,9 @@ print(f"dp formatted prompt: {tokenizer.decode(dp_dataset[0]['input_ids'], skip_
 # print(f"29892: |{tokenizer.decode(29892)}|")
 # print(f"29893: |{tokenizer.decode(1919)}|")
 
-print(tokenizer.encode("hello world", add_special_tokens=False))
-print(tokenizer.encode("hello", add_special_tokens=False))
-print(tokenizer.encode(" world", add_special_tokens=False))
+# print(tokenizer.encode("hello world", add_special_tokens=False))
+# print(tokenizer.encode("hello", add_special_tokens=False))
+# print(tokenizer.encode(" world", add_special_tokens=False))
 
 
 print("444, 29871, 22406, 338: ", tokenizer.decode([444, 29871, 22406, 338], skip_special_tokens=False))

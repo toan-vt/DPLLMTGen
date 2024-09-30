@@ -13,7 +13,7 @@ import random
 from src.preprocessing import TASK_DESCRIPTION
 
 EVAL_BATCH_SIZE = 16
-MAX_PREFIX_LENGTH = 10
+MAX_PREFIX_LENGTH = 6
 
 def is_number(s):
     try:
@@ -727,6 +727,7 @@ class DPLMTabGen:
                                 
                     for col in col_flags:
                         if not col_flags[col]:
+                            print(f'\tERROR: "{col}" is missing"')
                             wrong_format = True
                             break
 
@@ -756,19 +757,19 @@ class DPLMTabGen:
                             print(f"token: {top_k.indices[j]}, prob: {top_k.values[j]}, token: {self.tokenizer.decode([top_k.indices[j]])}")
                         print("\n")
 
-                        # get the token with the highest probability
-                        top_token_index = torch.argmax(prob)
-                        # check if it was sellected
-                        if top_token_index != outputs.sequences[i][last_token_index_in_seq]:
-                            # print(f"top token: {top_token_index}, prob: {prob[top_token_index]}, token: {self.tokenizer.decode([top_token_index])}")
-                            # print(f"selected token: {outputs.sequences[i][last_token_index_in_seq]}, prob: {prob[outputs.sequences[i][last_token_index_in_seq]]}, token: {self.tokenizer.decode([outputs.sequences[i][last_token_index_in_seq]])}")
-                            # print(f"seq: {output}")
-                            # print(f"score: {score}")
-                            # print(f"prob: {prob}")
-                            # print("\n")
-                            continue
-                        if (prob[top_token_index] < 0.6): # only get high prob samples
-                            continue
+                        # # get the token with the highest probability
+                        # top_token_index = torch.argmax(prob)
+                        # # check if it was sellected
+                        # if top_token_index != outputs.sequences[i][last_token_index_in_seq]:
+                        #     # print(f"top token: {top_token_index}, prob: {prob[top_token_index]}, token: {self.tokenizer.decode([top_token_index])}")
+                        #     # print(f"selected token: {outputs.sequences[i][last_token_index_in_seq]}, prob: {prob[outputs.sequences[i][last_token_index_in_seq]]}, token: {self.tokenizer.decode([outputs.sequences[i][last_token_index_in_seq]])}")
+                        #     # print(f"seq: {output}")
+                        #     # print(f"score: {score}")
+                        #     # print(f"prob: {prob}")
+                        #     # print("\n")
+                        #     continue
+                        # if (prob[top_token_index] < 0.6): # only get high prob samples
+                        #     continue
 
                         df.append(col_flags)
                         count += 1
@@ -855,6 +856,7 @@ class DPLMTabGen:
 
                     for col in col_flags:
                         if not col_flags[col]:
+                            print(f'\tERROR: "{col}" is missing"')
                             wrong_format = True
                             break
 

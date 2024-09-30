@@ -146,7 +146,7 @@ num_samples = TRAIN_SIZE
 if num_samples == 0:
     num_samples = len(df_train)
 
-syn_df = dptabgen.sample(constraint_dict, batch_size=BATCH_SIZE, num_samples=num_samples, max_length=MAX_LENGTH*2, target_last=TARGET_LAST, temperature=TEMPERATURE)
+syn_df = dptabgen.sample(constraint_dict, batch_size=BATCH_SIZE, num_samples=num_samples, max_length=int(MAX_LENGTH*1.2), target_last=TARGET_LAST, temperature=TEMPERATURE)
 save_file_path = f"./data/{DATASET}/synthetic/{SHORT_NAME}_TL{TARGET_LAST}{GAMMA}_NL{NUMERICAL_LOSS}_{TRAIN_SIZE}_{RANDOM_SEED}_{EPSILON}_{NUM_DP_EPOCHS}_{ALPHA}_{LEARNING_RATE}_TEM{TEMPERATURE}.csv"
 if not os.path.exists(os.path.dirname(save_file_path)):
     os.makedirs(os.path.dirname(save_file_path))

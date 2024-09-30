@@ -14,6 +14,11 @@ CONFIG = {
         "max_length": 110,
         "batch_size": 512,
     },
+    "shipping_binning":{
+        "data_size": 8800,
+        "max_length": 60,
+        "batch_size": 512,
+    },
     "healthcare":{
         "data_size": 44000,
         "max_length": 110,

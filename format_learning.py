@@ -87,4 +87,4 @@ for col in df_train.columns:
         constraint_dict[col]['min'] = df_train[col].min()
         constraint_dict[col]['max'] = df_train[col].max()
 
-print("Format passed: ", dptabgen.format_checking(constraint_dict, num_samples=500, max_length=MAX_LENGTH, batch_size=BATCH_SIZE, verbose=True, target_last=TARGET_LAST, wrong_format_verbose=True))
+print("Format passed: ", dptabgen.format_checking(constraint_dict, num_samples=500, max_length=int(MAX_LENGTH*1.2), batch_size=BATCH_SIZE, verbose=True, target_last=TARGET_LAST, wrong_format_verbose=True))

@@ -15,7 +15,7 @@ parser.add_argument('--ft_model_path', type=str, default=None, dest="ft_model_pa
 parser.add_argument('--temperature', type=float, default=0.7, dest="temperature")
 parser.add_argument('--csv_output_path', type=str, default="")
 parser.add_argument('--batch_size', type=int, default=0, dest="batch_size")
-
+parser.add_argument('--max_length', type=int, default=0, dest="max_length")
 args = parser.parse_args()
 
 print("args: ", args)
@@ -26,7 +26,12 @@ TRAIN_SIZE = 0
 EVAL_SIZE = 512
 if DATASET == "food":
     EVAL_SIZE = 64
-MAX_LENGTH = CONFIG[DATASET]["max_length"]
+
+if args.max_length == 0:
+    MAX_LENGTH = CONFIG[DATASET]["max_length"]
+else:
+    MAX_LENGTH = args.max_length
+
 if args.batch_size == 0:
     BATCH_SIZE = CONFIG[DATASET]["batch_size"]
 else:
@@ -72,7 +77,7 @@ num_samples = TRAIN_SIZE
 if num_samples == 0:
     num_samples = len(df_train)
 
-syn_df = dptabgen.sample_dev(constraint_dict, batch_size=BATCH_SIZE, num_samples=100, max_length=MAX_LENGTH, target_last=TARGET_LAST, temperature=TEMPERATURE)
+syn_df = dptabgen.sample_dev(constraint_dict, batch_size=BATCH_SIZE, num_samples=num_samples, max_length=int(MAX_LENGTH*1.2), target_last=TARGET_LAST, temperature=TEMPERATURE)
 save_file_path = OUTPUT_PATH
 if not os.path.exists(os.path.dirname(save_file_path)):
     os.makedirs(os.path.dirname(save_file_path))

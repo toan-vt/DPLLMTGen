@@ -34,6 +34,17 @@ def prepare_dataframe(dataset, random_seed: int = 42):
             df_train.to_csv(f"./data/shipping/shipping_train_{random_seed}.csv", index=False)
             df_test.to_csv(f"./data/shipping/shipping_test_{random_seed}.csv", index=False)
         return df_train, df_test
+    elif dataset == 'shipping_binning':
+        df = pd.read_csv("./data/shipping_binning/shipping_binning.csv")
+        for col in df.columns:
+            if df[col].dtype == 'object':
+                df[col] = df[col].str.strip()
+        df_train, df_test = train_test_split(df, test_size=0.2, random_state=random_seed)
+        if not os.path.exists(f"./data/shipping_binning/shipping_binning_train_{random_seed}.csv"):
+            df_train.to_csv(f"./data/shipping_binning/shipping_binning_train_{random_seed}.csv", index=False)
+            df_test.to_csv(f"./data/shipping_binning/shipping_binning_test_{random_seed}.csv", index=False)
+        return df_train, df_test
+    
     elif dataset == 'healthcare':
         df = pd.read_csv("./data/healthcare/healthcare.csv")
         for col in df.columns:
@@ -45,7 +56,6 @@ def prepare_dataframe(dataset, random_seed: int = 42):
             df_test.to_csv(f"./data/healthcare/healthcare_test_{random_seed}.csv", index=False)
 
         return df_train, df_test
-
     else:
         AssertionError("dataset must be either 'adult'")
 
