@@ -186,13 +186,14 @@ def get_xgboost_performance(df_test_, df_synthetic_, others=True, fairness_metri
         #train a xgboost with grid search
         from sklearn.model_selection import GridSearchCV
         from xgboost import XGBClassifier
-        xgb = XGBClassifier()
-        parameters = {
-            'n_estimators': [100, 200, 300],
-            'max_depth': [3, 5, 10, 20],
-            'learning_rate': [0.01, 0.05, 0.1]
-        }
-        clf = GridSearchCV(xgb, parameters, cv=5, n_jobs=-1, verbose=False)
+        # xgb = XGBClassifier()
+        # parameters = {
+        #     'n_estimators': [100, 200, 300],
+        #     'max_depth': [3, 5, 10, 20],
+        #     'learning_rate': [0.01, 0.05, 0.1]
+        # }
+        # clf = GridSearchCV(xgb, parameters, cv=5, n_jobs=-1, verbose=False)
+        clf = XGBClassifier()
         clf.fit(X_train, y_train)
         # get accuracy
         acc = clf.score(X_test, y_test)
@@ -202,6 +203,7 @@ def get_xgboost_performance(df_test_, df_synthetic_, others=True, fairness_metri
         else:
             from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score
             y_pred = clf.predict(X_test)
+            print("xgb: ", sum(y_pred), len(y_pred))
             prec = precision_score(y_test, y_pred, average="macro")
             recall = recall_score(y_test, y_pred, average="macro")
             f1 = f1_score(y_test, y_pred, average="macro")
@@ -237,12 +239,13 @@ def get_lr_performance(df_test_, df_synthetic_, others=True):
         #train a linear regression with grid search
         from sklearn.model_selection import GridSearchCV
         from sklearn.linear_model import LogisticRegression
-        lr = LogisticRegression()
-        parameters = {
-            'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
-            'penalty': ['l1', 'l2']
-        }
-        clf = GridSearchCV(lr, parameters, cv=5, n_jobs=-1, verbose=False)
+        # lr = LogisticRegression()
+        # parameters = {
+        #     'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+        #     'penalty': ['l1', 'l2']
+        # }
+        # clf = GridSearchCV(lr, parameters, cv=5, n_jobs=-1, verbose=False)
+        clf = LogisticRegression()
         clf.fit(X_train, y_train)
 
         # get accuracy
@@ -252,9 +255,11 @@ def get_lr_performance(df_test_, df_synthetic_, others=True):
             return acc
         else:
             from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score
-            prec = precision_score(y_test, clf.predict(X_test))
-            recall = recall_score(y_test, clf.predict(X_test))
-            f1 = f1_score(y_test, clf.predict(X_test))
+            y_pred = clf.predict(X_test)
+            print("lr: ", sum(y_pred), len(y_pred))
+            prec = precision_score(y_test, y_pred)
+            recall = recall_score(y_test, y_pred)
+            f1 = f1_score(y_test, y_pred)
             auc = roc_auc_score(y_test, clf.predict_proba(X_test)[:,1])
             return acc, prec, recall, f1, auc
     except:

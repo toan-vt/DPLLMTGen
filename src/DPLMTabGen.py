@@ -372,9 +372,16 @@ class DPLMTabGen:
                         output_numbers = self.tokenizer.decode(output_tokens[idx][is_numbers[idx] == True], skip_special_tokens=True)
                         _, label_numbers = to_numbers(label_numbers)
                         success, output_numbers = to_numbers(output_numbers)
-                        if success:    
-                            for i in range(len(label_numbers)):        
-                                number_loss += 0.5*((label_numbers[i] - output_numbers[i])/max_abs_values[num_columns[idx][i]])**2
+                        if success:
+                            if len(label_numbers) == len(output_numbers):
+                                for i in range(len(label_numbers)):
+                                    number_loss += 0.5*((label_numbers[i] - output_numbers[i])/max_abs_values[num_columns[idx][i]])**2
+                            else:
+                                print("Length mismatch between label_numbers and output_numbers")
+                                number_loss = 2.0*len(label_numbers)
+                            # print(f'label_numbers: {label_numbers}')
+                            # print(f'output_numbers: {output_numbers}')
+                            # print("\n")
                         else:
                             number_loss = 2.0*len(label_numbers)
                     number_loss = number_loss / batch['input_ids'].shape[0]
